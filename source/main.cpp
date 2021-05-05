@@ -23,10 +23,16 @@ public:
 		int num_images = atoi(argv[4]);
 		_output_dir = argv[5];
 
-		for(int i=0; i<num_images; ++i)
+		auto results_filepath = _output_dir + "/" + "GoalPositionAlgorithmResults.txt";
+		_results_file.open(results_filepath);
+		enforce(_results_file.is_open(), "failed to open file for writing: " + results_filepath);
+
+		for(int i=1; i<=num_images; ++i)
 		{
 			_locate_gate(i);
 		}
+
+		_results_file.close();
 
 		return 0;
 	}
@@ -56,7 +62,7 @@ private:
 
 			total_diff += cv::Vec2f(lp) - cv::Vec2f(ep);
 
-			file << lp.x << " " << lp.y;
+			file << lp.x << " " << lp.y << std::endl;
 		}
 
 		char buf[1024];
