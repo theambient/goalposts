@@ -42,12 +42,15 @@ private:
 	void _locate_gate(int image_idx)
 	{
 		char img_path[MAX_PATH_SIZE], ap_path[MAX_PATH_SIZE], ep_path[MAX_PATH_SIZE], out_path[MAX_PATH_SIZE];
-		sprintf(img_path, "%s/%04d.png", _img_dir.c_str(), image_idx);
+		sprintf(img_path, "%s/im%04d.png", _img_dir.c_str(), image_idx);
 		sprintf(ap_path, "%s/approximateGoalPosition%04d.txt", _approx_dir.c_str(), image_idx);
 		sprintf(ep_path, "%s/exactGoalPosition%04d.txt", _exact_dir.c_str(), image_idx);
 		sprintf(out_path, "%s/algorithmGoalPosition%04d.txt", _output_dir.c_str(), image_idx);
 
-		auto gl = GoalPostsLocator(img_path, ap_path);
+		auto img = cv::imread(img_path, cv::IMREAD_GRAYSCALE);
+		enforce(!img.empty(), "failed to load image " + std::string(img_path));
+
+		auto gl = GoalPostsLocator(img, ap_path);
 		auto located_pts = gl.locate();
 		auto approx_pts = gl.get_approx_points();
 		auto exact_pts = read_points(ep_path);
@@ -68,6 +71,26 @@ private:
 		char buf[1024];
 		sprintf(buf, "%04d (%.1f, %.1f) %.1f", image_idx, total_diff[0], total_diff[1], cv::norm(total_diff));
 		_results_file << buf << std::endl;
+
+		_draw_goalpost(located_pts, img, image_idx);
+	}
+
+	void _draw_goalpost(const std::vector<cv::Point2f> & points, cv::Mat img, int image_idx)
+	{
+		cv::Mat img_out;
+		cv::cvtColor(img, img_out, cv::COLOR_GRAY2RGB);
+
+		cv::Scalar color(0, 0, 255);
+
+		for(auto &p: points)
+		{
+			cv::circle(img_out, cv::Point(int(p.x),int(p.y)), 5, color, -1);
+		}
+
+		char out_path[MAX_PATH_SIZE];
+		sprintf(out_path, "%s/imageWithGoal%04d.png", _output_dir.c_str(), image_idx);
+
+		cv::imwrite(out_path, img_out);
 	}
 
 	std::string _img_dir;

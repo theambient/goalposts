@@ -7,6 +7,8 @@ class GoalPostsLocator
 	std::vector<cv::Point2f> _approx_points;
 public:
 	GoalPostsLocator(std::string img_path, std::string approx_points_path);
+	GoalPostsLocator(cv::Mat img, std::string approx_points_path);
+
 	std::vector<cv::Point2f> locate();
 	std::vector<cv::Point2f> get_approx_points() const;
 };

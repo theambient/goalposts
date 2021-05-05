@@ -9,6 +9,12 @@ GoalPostsLocator::GoalPostsLocator(std::string img_path, std::string approx_poin
 	_approx_points = read_points(approx_points_path);
 }
 
+GoalPostsLocator::GoalPostsLocator(cv::Mat img, std::string approx_points_path)
+{
+	_img = img;
+	_approx_points = read_points(approx_points_path);
+}
+
 std::vector<cv::Point2f> GoalPostsLocator::get_approx_points() const
 {
 	return _approx_points;
