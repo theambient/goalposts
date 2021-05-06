@@ -8,6 +8,7 @@ class GoalPostsLocator
 	cv::Mat _img_ext;
 	std::vector<cv::Point2f> _approx_points;
 	AlgorithmParams _params;
+	int _margin_size;
 
 	cv::Point2i _match_pattern(cv::Mat pattern, cv::Point2i sp);
 	float _calc_metric(int x, int y, cv::Mat pattern, cv::Point2i sp);
