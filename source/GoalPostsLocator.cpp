@@ -49,8 +49,8 @@ std::vector<cv::Point2f> GoalPostsLocator::locate()
 
 	for(size_t i=0; i<located_pts.size(); ++i)
 	{
-		located_pts[i].x -= _margin_size;
-		located_pts[i].y -= _margin_size;
+		located_pts[i].x -= _approx_points[i].x;
+		located_pts[i].y -= _approx_points[i].y;
 	}
 
 	return std::move(located_pts);

@@ -51,21 +51,25 @@ private:
 		enforce(!img.empty(), "failed to load image " + std::string(img_path));
 
 		auto gl = GoalPostsLocator(img, ap_path);
-		auto located_pts = gl.locate();
-		auto approx_pts = gl.get_approx_points();
+		auto located_diffs = gl.locate();
+		auto approx_pts = read_points(ap_path);
 		auto exact_pts = read_points(ep_path);
 
 		std::ofstream file(out_path);
 		cv::Vec2f total_diff(0,0);
-		for(size_t i=0; i<located_pts.size(); ++i)
+		std::vector<cv::Point2f> located_pts;
+		for(size_t i=0; i<located_diffs.size(); ++i)
 		{
-			auto lp = located_pts[i];
+			auto ld = located_diffs[i];
 			auto ap = approx_pts[i];
 			auto ep = exact_pts[i];
+			auto lp = ap + ld;
 
 			total_diff += cv::Vec2f(lp) - cv::Vec2f(ep);
 
 			file << lp.x << " " << lp.y << std::endl;
+
+			located_pts.push_back(lp);
 		}
 
 		char buf[1024];
