@@ -1,13 +1,13 @@
 
 #include <opencv2/opencv.hpp>
+#include "config.h"
 
 class GoalPostsLocator
 {
 	cv::Mat _img;
 	cv::Mat _img_ext;
 	std::vector<cv::Point2f> _approx_points;
-	int _pattern_size;
-	int _search_wnd_size;
+	AlgorithmParams _params;
 
 	cv::Point2i _match_pattern(cv::Mat pattern, cv::Point2i sp);
 	float _calc_metric(int x, int y, cv::Mat pattern, cv::Point2i sp);
@@ -18,4 +18,5 @@ public:
 
 	std::vector<cv::Point2f> locate();
 	std::vector<cv::Point2f> get_approx_points() const;
+	void set_algorithm_params(const AlgorithmParams & params);
 };
