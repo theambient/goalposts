@@ -44,7 +44,7 @@ std::vector<cv::Point2f> GoalPostsLocator_FullMatch::locate()
 		start_points.push_back(sp);
 	}
 
-	auto outline_diff = _match_pattern(pattern, start_points);
+	auto outline_diff = _match_pattern_fast(pattern, start_points);
 
 	for(size_t i=0; i<start_points.size(); ++i)
 	{
@@ -54,6 +54,7 @@ std::vector<cv::Point2f> GoalPostsLocator_FullMatch::locate()
 	return std::move(located_pts);
 }
 
+// changes order of calculations and ensures memory locality. could optimised further by leveraging fact that pattern advances one coordinte at a time.
 cv::Point2i GoalPostsLocator_FullMatch::_match_pattern(cv::Mat pattern, const std::vector<cv::Point2i> & start_points)
 {
 	float max_metric = 0;
@@ -88,6 +89,57 @@ cv::Point2i GoalPostsLocator_FullMatch::_match_pattern(cv::Mat pattern, const st
 				max_metric = metric_val;
 				max_displacement = cv::Point2i(dx, dy);
 				// printf("    _match_pattern update xy: (%3d, %3d) -> %7.2f\n", dx, dy, metric_val);
+			}
+		}
+	}
+
+	return max_displacement;
+}
+
+cv::Point2i GoalPostsLocator_FullMatch::_match_pattern_fast(cv::Mat pattern, const std::vector<cv::Point2i> & start_points)
+{
+	const size_t num_points = start_points.size();
+
+	const int SW = _params.search_wnd;
+	const int SWF = 2*SW + 1;
+	std::vector<float> distortions(SWF*SWF);
+
+	for(int pidx=0; pidx<num_points; ++pidx)
+	{
+		auto sp = start_points[pidx];
+
+		for(int dy=-SW; dy<SW+1; ++dy)
+		{
+			for(int dx=-SW; dx<SW+1; ++dx)
+			{
+				int x = sp.x + dx;
+				int y = sp.y + dy;
+				int didx = (dy + SW) * SWF + dx + SW;
+
+				assert(x >= 0);
+				assert(y >= 0);
+				assert(x < _img_ext.cols - _params.pattern_size);
+				assert(y < _img_ext.rows - _params.pattern_size);
+
+				distortions[didx] += _pattern_metric->calculate(x, y, _img_ext, pattern, sp, _params.pattern_size);
+			}
+
+		}
+	}
+
+	float max_metric = 0;
+	cv::Point2i max_displacement;
+
+	for(int dy=-SW; dy<SW+1; ++dy)
+	{
+		for(int dx=-SW; dx<SW+1; ++dx)
+		{
+			const int didx = (dy + SW) * SWF + dx + SW;
+
+			if(distortions[didx] > max_metric)
+			{
+				max_metric = distortions[didx];
+				max_displacement = cv::Point2i(dx, dy);
 			}
 		}
 	}

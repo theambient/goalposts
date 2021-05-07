@@ -15,6 +15,7 @@ class GoalPostsLocator_FullMatch : public GoalPostsLocator_If
 	int _margin_size;
 	std::unique_ptr<PatternMetric> _pattern_metric;
 
+	cv::Point2i _match_pattern_fast(cv::Mat pattern, const std::vector<cv::Point2i> & start_points);
 	cv::Point2i _match_pattern(cv::Mat pattern, const std::vector<cv::Point2i> & start_points);
 	float _calc_metric(int x, int y, cv::Mat pattern, cv::Point2i sp);
 public:
