@@ -1,7 +1,7 @@
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/imgproc.hpp>
 #include "GoalPostsLocator.h"
+#include "algo/helpers.h"
 #include "utils.h"
 
 GoalPostsLocator::GoalPostsLocator(std::string img_path, std::string approx_points_path)
@@ -36,7 +36,7 @@ std::vector<cv::Point2f> GoalPostsLocator::locate()
 		_approx_points[i].y += _margin_size;
 	}
 
-	auto pattern = _calc_pattern();
+	auto pattern = build_pattern(_img_ext, _params, _approx_points);
 	std::vector<cv::Point2f> located_pts;
 
 	for(auto& ap: _approx_points)
@@ -106,55 +106,4 @@ float GoalPostsLocator::_calc_metric(int x, int y, cv::Mat pattern, cv::Point2i 
 	assert(cnt[1] > 0);
 
 	return abs(acc[0] / float(cnt[0]) - acc[1] / float(cnt[1]));
-}
-
-cv::Mat GoalPostsLocator::_calc_pattern()
-{
-    int w = _img_ext.cols;
-    int h = _img_ext.rows;
-
-    cv::Mat pattern = cv::Mat::zeros(h,w, CV_8U);
-
-	int GH  = _params.gate_height;
-	int GW  = _params.gate_width;
-    int BS  = _params.bar_width;
-    int BS2 = _params.bar_width / 2;
-    int BW  = _params.bar_width;
-    int BW2 = _params.bar_width / 2;
-
-    cv::Point2i pts[1][8] = {{
-    	cv::Point2i(0, GH),
-    	cv::Point2i(0, 0),
-    	cv::Point2i(GW, 0),
-    	cv::Point2i(GW, GH),
-    	cv::Point2i(GW - BW, GH),
-    	cv::Point2i(GW - BW, BS),
-    	cv::Point2i(BW, BS),
-    	cv::Point2i(BW, GH),
-    }};
-
-    const cv::Point* ppt[1] = { pts[0] };
-    const int npt[] = {8};
-
-    cv::fillPoly(pattern, ppt, npt, 1, cv::Scalar(255,255,255), cv::LINE_8);
-
-    cv::Point2f srcTri[] = {
-        cv::Point2f(BW2, GH),
-        cv::Point2f(BW2, BS2),
-        cv::Point2f(GW - BW2, BS2),
-        cv::Point2f(GW - BW2, GH),
-    };
-
-    cv::Point2f dstTri[] = {
-        _approx_points[0],
-        _approx_points[1],
-        _approx_points[3],
-        _approx_points[4],
-    };
-
-    cv::Mat warp_mat = cv::getPerspectiveTransform(srcTri, dstTri);
-    cv::Mat pattern_w;
-    cv::warpPerspective(pattern, pattern_w, warp_mat, cv::Size(w, h));
-
-    return pattern_w;
 }
