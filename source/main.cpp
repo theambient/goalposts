@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string>
 #include <opencv2/opencv.hpp>
-#include "GoalPostsLocator.h"
+#include "algo/GoalPostsLocator.h"
 #include "utils.h"
 
 class App

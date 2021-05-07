@@ -22,6 +22,6 @@ message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 file(GLOB_RECURSE SOURCES "source/*")
 
 add_executable(goalposts ${SOURCES})
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source)
 
 target_link_libraries(goalposts PRIVATE ${OpenCV_LIBS})
