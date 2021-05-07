@@ -16,7 +16,8 @@ public:
 	{
 		if(argc != 7)
 		{
-			printf("usage: %s <images-dir> <approximate-points-dir> <exact-points-dir> <num-images> <output-dir> <alog-name>\n", argv[0]);
+			printf("usage: %s <images-dir> <approximate-points-dir> <exact-points-dir> <num-images> <output-dir> <algorithm-name>\n", argv[0]);
+			printf("    <algorithm-name>: v1|full-match\n");
 			return 1;
 		}
 

@@ -18,7 +18,8 @@ Once they are installed:
 Launch using the following cmd: 
 
 ```
-./goalpoasts <images-dir> <approximate-points-dir> <exact-points-dir> <num-images> <output-dir>
+usage: ./goalposts <images-dir> <approximate-points-dir> <exact-points-dir> <num-images> <output-dir> <algorithm-name>
+    <algorithm-name>: v1|full-match
 ```
 
 # Algorithm
@@ -29,9 +30,15 @@ First a geometry of goalposts is derived from approximate points by generation o
 
 ![pattern](images/pattern.png)
 
+### algorithm 'v1'
+
 For each point pattern matching is used to find a position that leads to the best "difference" between masked area in pattern and non-masked with pixel accuracy.
 
 Different metric were tried, absolute difference of means of regions was the best.
+
+### algorithm 'full-match'
+
+Development of `v1` algo. Uses the fact that all points are shifted by the same value so matching is performed for all points all together and distortion is calculated cummulatevely for each displacemnet (all points contribute to the same displacement). Can be though as matching whole pattern in the image but saves up caclulations by reducing "pattern area" using only corners.
 
 ![matching](images/matching.png)
 
