@@ -8,12 +8,14 @@ GoalPostsLocator::GoalPostsLocator(std::string img_path, std::string approx_poin
 {
 	_img = cv::imread(img_path);
 	_approx_points = read_points(approx_points_path);
+	_pattern_metric = std::make_unique<PatternMetric_DiffOfMeans>();
 }
 
 GoalPostsLocator::GoalPostsLocator(cv::Mat img, std::string approx_points_path)
 {
 	_img = img;
 	_approx_points = read_points(approx_points_path);
+	_pattern_metric = std::make_unique<PatternMetric_DiffOfMeans>();
 }
 
 std::vector<cv::Point2f> GoalPostsLocator::get_approx_points() const
@@ -65,7 +67,7 @@ cv::Point2i GoalPostsLocator::_match_pattern(cv::Mat pattern, cv::Point2i sp)
 	{
 		for(int x=std::max(0, sp.x-_params.search_wnd); x<std::min(sp.x+_params.search_wnd+1,_img_ext.cols - _params.pattern_size); ++x)
 		{
-			float val = _calc_metric(x, y, pattern, sp);
+			float val = _pattern_metric->calculate(x, y, _img_ext, pattern, sp, _params.pattern_size);
 			if(val > val_max)
 			{
 				val_max = val;
@@ -75,35 +77,4 @@ cv::Point2i GoalPostsLocator::_match_pattern(cv::Mat pattern, cv::Point2i sp)
 	}
 
 	return pt_max;
-}
-
-float GoalPostsLocator::_calc_metric(int x, int y, cv::Mat pattern, cv::Point2i sp)
-{
-	auto pptr = pattern.ptr<unsigned char>(sp.y, sp.x);
-	auto iptr = _img_ext.ptr<unsigned char>(y, x);
-
-	unsigned acc[2] = {0};
-	unsigned cnt[2] = {0};
-
-	int width = pattern.cols;
-	int stride = width - _params.pattern_size;
-
-	for(int i=0; i<_params.pattern_size; ++i)
-	{
-		for(int j=0; j<_params.pattern_size; ++j)
-		{
-			acc[*pptr == 0] += *iptr;
-			cnt[*pptr == 0] += 1;
-			++pptr;
-			++iptr;
-		}
-
-		pptr += stride;
-		iptr += stride;
-	}
-
-	assert(cnt[0] > 0);
-	assert(cnt[1] > 0);
-
-	return abs(acc[0] / float(cnt[0]) - acc[1] / float(cnt[1]));
 }
