@@ -56,7 +56,8 @@ private:
 		auto exact_pts = read_points(ep_path);
 
 		std::ofstream file(out_path);
-		cv::Vec2f total_diff(0,0);
+		cv::Vec2f possible_outline_diff;
+		bool outline_preserved = true;
 		std::vector<cv::Point2f> located_pts;
 		for(size_t i=0; i<located_diffs.size(); ++i)
 		{
@@ -65,7 +66,18 @@ private:
 			auto ep = exact_pts[i];
 			auto lp = ap + ld;
 
-			total_diff += cv::Vec2f(lp) - cv::Vec2f(ep);
+			auto diff = cv::Vec2f(lp) - cv::Vec2f(ep);
+			if(i == 0)
+			{
+				possible_outline_diff = diff;
+			}
+			else
+			{
+				if(cv::norm(diff - possible_outline_diff) > 1e-03)
+				{
+					outline_preserved = false;
+				}
+			}
 
 			file << lp.x << " " << lp.y << std::endl;
 
@@ -73,7 +85,14 @@ private:
 		}
 
 		char buf[1024];
-		sprintf(buf, "%04d (%.1f, %.1f) %.1f", image_idx, total_diff[0], total_diff[1], cv::norm(total_diff));
+		if(outline_preserved)
+		{
+			sprintf(buf, "%04d (%.1f, %.1f) %.1f", image_idx, possible_outline_diff[0], possible_outline_diff[1], cv::norm(possible_outline_diff));
+		}
+		else
+		{
+			sprintf(buf, "%04d outline was not preserved", image_idx);
+		}
 		_results_file << buf << std::endl;
 
 		_draw_goalpost(located_pts, img, image_idx);
