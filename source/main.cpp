@@ -1,4 +1,6 @@
 
+#include <memory>
+#include <exception>
 #include <stdio.h>
 #include <fstream>
 #include <string>
@@ -11,9 +13,9 @@ class App
 public:
 	int run(int argc, const char* argv[])
 	{
-		if(argc != 6)
+		if(argc != 7)
 		{
-			printf("usage: %s <images-dir> <approximate-points-dir> <exact-points-dir> <num-images> <output-dir>\n", argv[0]);
+			printf("usage: %s <images-dir> <approximate-points-dir> <exact-points-dir> <num-images> <output-dir> <alog-name>\n", argv[0]);
 			return 1;
 		}
 
@@ -22,6 +24,7 @@ public:
 		_exact_dir = argv[3];
 		int num_images = atoi(argv[4]);
 		_output_dir = argv[5];
+		_algo_name = argv[6];
 
 		auto results_filepath = _output_dir + "/" + "GoalPositionAlgorithmResults.txt";
 		_results_file.open(results_filepath);
@@ -39,6 +42,22 @@ public:
 
 private:
 
+	// oversimplified factory
+	std::unique_ptr<GoalPostsLocator_If> _create_locator(cv::Mat img, std::string ap_path)
+	{
+		std::unique_ptr<GoalPostsLocator_If> gl;
+		if(_algo_name == "v1")
+		{
+			gl = std::make_unique<GoalPostsLocator>(img, ap_path);
+		}
+		else
+		{
+			throw std::runtime_error("unknown algoithm " + _algo_name);
+		}
+
+		return gl;
+	}
+
 	void _locate_gate(int image_idx)
 	{
 		char img_path[MAX_PATH_SIZE], ap_path[MAX_PATH_SIZE], ep_path[MAX_PATH_SIZE], out_path[MAX_PATH_SIZE];
@@ -50,8 +69,9 @@ private:
 		auto img = cv::imread(img_path, cv::IMREAD_GRAYSCALE);
 		enforce(!img.empty(), "failed to load image " + std::string(img_path));
 
-		auto gl = GoalPostsLocator(img, ap_path);
-		auto located_diffs = gl.locate();
+		// could be a factory
+		auto gl = _create_locator(img, ap_path);
+		auto located_diffs = gl->locate();
 		auto approx_pts = read_points(ap_path);
 		auto exact_pts = read_points(ep_path);
 
@@ -120,6 +140,7 @@ private:
 	std::string _approx_dir;
 	std::string _exact_dir;
 	std::string _output_dir;
+	std::string _algo_name;
 	std::ofstream _results_file;
 };
 

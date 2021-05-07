@@ -1,8 +1,10 @@
+#pragma once
 
 #include <opencv2/opencv.hpp>
+#include "algo/GoalPostsLocator_If.h"
 #include "config.h"
 
-class GoalPostsLocator
+class GoalPostsLocator : public GoalPostsLocator_If
 {
 	cv::Mat _img;
 	cv::Mat _img_ext;
