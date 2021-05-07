@@ -6,6 +6,7 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include "algo/GoalPostsLocator.h"
+#include "algo/GoalPostsLocator_FullMatch.h"
 #include "utils.h"
 
 class App
@@ -49,6 +50,10 @@ private:
 		if(_algo_name == "v1")
 		{
 			gl = std::make_unique<GoalPostsLocator>(img, ap_path);
+		}
+		else if(_algo_name == "full-match")
+		{
+			gl = std::make_unique<GoalPostsLocator_FullMatch>(img, ap_path);
 		}
 		else
 		{
